@@ -8,8 +8,18 @@ final class MonthlyPlan {
 
     @Attribute(.unique) var id: UUID = UUID()
 
-    var month: Int = 1
-    var year: Int = 2000
+    /// Canonical "YYYY-MM" key for this plan's calendar month, e.g. "2026-09".
+    ///
+    /// SwiftData cannot express uniqueness across two attributes, so month and
+    /// year are collapsed into one unique key. This is the persistence-layer
+    /// backstop behind MonthlyPlanService's duplicate check.
+    ///
+    /// Derived in `init` and has no setter, so it cannot drift out of step with
+    /// `month` and `year`.
+    @Attribute(.unique) private(set) var monthKey: String = ""
+
+    private(set) var month: Int = 1
+    private(set) var year: Int = 2000
 
     /// Money available at the start of the month.
     var startingBalance: Decimal = Decimal.zero
@@ -42,6 +52,7 @@ final class MonthlyPlan {
         self.id = UUID()
         self.month = month
         self.year = year
+        self.monthKey = Self.makeMonthKey(month: month, year: year)
         self.startingBalance = startingBalance
         self.protectedAmount = protectedAmount
         self.isClosed = false
@@ -50,6 +61,15 @@ final class MonthlyPlan {
 }
 
 extension MonthlyPlan {
+
+    /// The canonical key for a calendar month: (9, 2026) -> "2026-09".
+    ///
+    /// The single place this format is defined. Callers that need to look a
+    /// plan up by month must use this rather than building the string
+    /// themselves.
+    static func makeMonthKey(month: Int, year: Int) -> String {
+        String(format: "%04d-%02d", year, month)
+    }
 
     /// e.g. "September 2026"
     var displayTitle: String {

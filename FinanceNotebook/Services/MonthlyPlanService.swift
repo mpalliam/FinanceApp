@@ -30,10 +30,17 @@ extension MonthlyPlanError: LocalizedError {
 }
 
 /// Creating a `MonthlyPlan` is the one place that has to enforce "one plan per
-/// calendar month". SwiftData cannot express uniqueness across two attributes,
-/// so the rule is checked here rather than in the schema -- and deliberately
-/// not in a view, so that every screen that creates a month goes through the
-/// same guard.
+/// calendar month", and deliberately not a view, so that every screen creating
+/// a month goes through the same guard.
+///
+/// There are two layers of protection, and both are wanted:
+///
+///   1. This service checks first and throws `planAlreadyExists`, which is what
+///      the UI can turn into a readable message.
+///   2. `MonthlyPlan.monthKey` is unique in the store, so a duplicate cannot be
+///      persisted even if some future code path skips this service.
+///
+/// The service also generates the canonical key. No caller should build it.
 enum MonthlyPlanService {
 
     @discardableResult
@@ -74,13 +81,18 @@ enum MonthlyPlanService {
     }
 
     /// The existing plan for a calendar month, if there is one.
+    ///
+    /// Looks up by the canonical month key rather than comparing month and year
+    /// separately, so the service and the store's uniqueness constraint agree on
+    /// what "the same month" means.
     static func existingPlan(
         month: Int,
         year: Int,
         context: ModelContext
     ) throws -> MonthlyPlan? {
+        let key = MonthlyPlan.makeMonthKey(month: month, year: year)
         var descriptor = FetchDescriptor<MonthlyPlan>(
-            predicate: #Predicate { $0.month == month && $0.year == year }
+            predicate: #Predicate { $0.monthKey == key }
         )
         descriptor.fetchLimit = 1
         return try context.fetch(descriptor).first
