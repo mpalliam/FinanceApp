@@ -90,7 +90,7 @@ struct DevDataView: View {
     private func createSampleExpense() {
         guard let plan = samplePlan, let category = sampleCategory else { return }
 
-        let expense = Transaction(
+        let expense = Expense(
             amount: Decimal(string: "14.72") ?? .zero,
             date: date(day: 2, month: 9, year: 2026),
             merchant: "Chipotle",
@@ -156,10 +156,10 @@ struct DevDataView: View {
                 )
             }
 
-            ForEach(plan.transactions) { transaction in
+            ForEach(plan.expenses) { expense in
                 LabeledContent(
-                    "\(transaction.merchant) - \(transaction.category?.name ?? "Uncategorized")",
-                    value: "-\(currency(transaction.amount))"
+                    "\(expense.merchant) - \(expense.category?.name ?? "Uncategorized")",
+                    value: "-\(currency(expense.amount))"
                 )
             }
 
@@ -181,7 +181,7 @@ struct DevDataView: View {
 #Preview {
     DevDataView()
         .modelContainer(
-            for: [MonthlyPlan.self, BudgetCategory.self, Transaction.self, MoneyAddedEntry.self],
+            for: [MonthlyPlan.self, BudgetCategory.self, Expense.self, MoneyAddedEntry.self],
             inMemory: true
         )
 }

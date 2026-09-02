@@ -9,7 +9,7 @@ struct FinanceNotebookApp: App {
         let schema = Schema([
             MonthlyPlan.self,
             BudgetCategory.self,
-            Transaction.self,
+            Expense.self,
             MoneyAddedEntry.self
         ])
 

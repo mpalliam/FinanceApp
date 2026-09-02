@@ -27,8 +27,8 @@ final class MonthlyPlan {
     @Relationship(deleteRule: .cascade, inverse: \BudgetCategory.plan)
     var categories: [BudgetCategory] = []
 
-    @Relationship(deleteRule: .cascade, inverse: \Transaction.plan)
-    var transactions: [Transaction] = []
+    @Relationship(deleteRule: .cascade, inverse: \Expense.plan)
+    var expenses: [Expense] = []
 
     @Relationship(deleteRule: .cascade, inverse: \MoneyAddedEntry.plan)
     var moneyAdded: [MoneyAddedEntry] = []

@@ -1,14 +1,14 @@
 import Foundation
 import SwiftData
 
-/// An expense. For V1 a Transaction is always money going out.
+/// Money going out. For V1 this is the only kind of spending the app records.
 ///
 /// The link to `plan` is deliberately kept alongside the link to `category`
 /// rather than being reached through it: because deleting a category nullifies
 /// `category`, month membership has to be stored independently or an expense
 /// would silently drop out of its month's totals.
 @Model
-final class Transaction {
+final class Expense {
 
     @Attribute(.unique) var id: UUID = UUID()
 

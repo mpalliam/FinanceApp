@@ -33,8 +33,8 @@ final class BudgetCategory {
     // Nullify, never cascade. Deleting a category must not delete the record of
     // money that was actually spent -- those expenses survive with no category
     // and still count against the month's total.
-    @Relationship(deleteRule: .nullify, inverse: \Transaction.category)
-    var transactions: [Transaction] = []
+    @Relationship(deleteRule: .nullify, inverse: \Expense.category)
+    var expenses: [Expense] = []
 
     init(
         name: String,
