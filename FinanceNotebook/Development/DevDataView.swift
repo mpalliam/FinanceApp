@@ -60,18 +60,18 @@ struct DevDataView: View {
     }
 
     private func createSamplePlan() {
-        // Only one plan may exist per month/year, and SwiftData cannot express a
-        // uniqueness constraint across two attributes, so check before inserting.
-        guard samplePlan == nil else { return }
-
-        let plan = MonthlyPlan(
-            month: 9,
-            year: 2026,
-            startingBalance: Decimal(string: "2400.00") ?? .zero,
-            protectedAmount: Decimal(string: "1000.00") ?? .zero
-        )
-        context.insert(plan)
-        save()
+        // The one-plan-per-month rule lives in MonthlyPlanService, not here.
+        do {
+            try MonthlyPlanService.createPlan(
+                month: 9,
+                year: 2026,
+                startingBalance: Decimal(string: "2400.00") ?? .zero,
+                protectedAmount: Decimal(string: "1000.00") ?? .zero,
+                context: context
+            )
+        } catch {
+            print("Could not create plan: \(error.localizedDescription)")
+        }
     }
 
     private func createSampleCategory() {
