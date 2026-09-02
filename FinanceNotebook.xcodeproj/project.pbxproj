@@ -7,14 +7,14 @@
 	objects = {
 
 /* Begin PBXContainerItemProxy section */
-		1A00000000000000000000DB /* PBXContainerItemProxy */ = {
+		1A00000000000000000000CB /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 1A00000000000000000000A1 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = 1A00000000000000000000A2;
 			remoteInfo = FinanceNotebook;
 		};
-		1A00000000000000000000CB /* PBXContainerItemProxy */ = {
+		1A00000000000000000000DB /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 1A00000000000000000000A1 /* Project object */;
 			proxyType = 1;
@@ -25,8 +25,8 @@
 
 /* Begin PBXFileReference section */
 		1A00000000000000000000A3 /* FinanceNotebook.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FinanceNotebook.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		1A00000000000000000000D2 /* FinanceNotebookTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FinanceNotebookTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		1A00000000000000000000C2 /* FinanceNotebookUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FinanceNotebookUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		1A00000000000000000000D2 /* FinanceNotebookTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FinanceNotebookTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -35,8 +35,16 @@
 			path = FinanceNotebook;
 			sourceTree = "<group>";
 		};
-		1A00000000000000000000D3 /* FinanceNotebookTests */ = {isa = PBXFileSystemSynchronizedRootGroup; path = FinanceNotebookTests; sourceTree = "<group>"; };
-		1A00000000000000000000C3 /* FinanceNotebookUITests */ = {isa = PBXFileSystemSynchronizedRootGroup; path = FinanceNotebookUITests; sourceTree = "<group>"; };
+		1A00000000000000000000C3 /* FinanceNotebookUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = FinanceNotebookUITests;
+			sourceTree = "<group>";
+		};
+		1A00000000000000000000D3 /* FinanceNotebookTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = FinanceNotebookTests;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -47,14 +55,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		1A00000000000000000000D5 /* Frameworks */ = {
+		1A00000000000000000000C5 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		1A00000000000000000000C5 /* Frameworks */ = {
+		1A00000000000000000000D5 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -109,27 +117,6 @@
 			productReference = 1A00000000000000000000A3 /* FinanceNotebook.app */;
 			productType = "com.apple.product-type.application";
 		};
-		1A00000000000000000000D1 /* FinanceNotebookTests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 1A00000000000000000000D7 /* Build configuration list for PBXNativeTarget "FinanceNotebookTests" */;
-			buildPhases = (
-				1A00000000000000000000D4 /* Sources */,
-				1A00000000000000000000D5 /* Frameworks */,
-				1A00000000000000000000D6 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				1A00000000000000000000DA /* PBXTargetDependency */,
-			);
-			fileSystemSynchronizedGroups = (
-				1A00000000000000000000D3 /* FinanceNotebookTests */,
-			);
-			name = FinanceNotebookTests;
-			productName = FinanceNotebookTests;
-			productReference = 1A00000000000000000000D2 /* FinanceNotebookTests.xctest */;
-			productType = "com.apple.product-type.bundle.unit-test";
-		};
 		1A00000000000000000000C1 /* FinanceNotebookUITests */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 1A00000000000000000000C7 /* Build configuration list for PBXNativeTarget "FinanceNotebookUITests" */;
@@ -150,6 +137,27 @@
 			productName = FinanceNotebookUITests;
 			productReference = 1A00000000000000000000C2 /* FinanceNotebookUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+		1A00000000000000000000D1 /* FinanceNotebookTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1A00000000000000000000D7 /* Build configuration list for PBXNativeTarget "FinanceNotebookTests" */;
+			buildPhases = (
+				1A00000000000000000000D4 /* Sources */,
+				1A00000000000000000000D5 /* Frameworks */,
+				1A00000000000000000000D6 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				1A00000000000000000000DA /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				1A00000000000000000000D3 /* FinanceNotebookTests */,
+			);
+			name = FinanceNotebookTests;
+			productName = FinanceNotebookTests;
+			productReference = 1A00000000000000000000D2 /* FinanceNotebookTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
 		};
 /* End PBXNativeTarget section */
 
@@ -195,14 +203,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		1A00000000000000000000D6 /* Resources */ = {
+		1A00000000000000000000C6 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		1A00000000000000000000C6 /* Resources */ = {
+		1A00000000000000000000D6 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -219,14 +227,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		1A00000000000000000000D4 /* Sources */ = {
+		1A00000000000000000000C4 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		1A00000000000000000000C4 /* Sources */ = {
+		1A00000000000000000000D4 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -236,15 +244,15 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		1A00000000000000000000DA /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 1A00000000000000000000A2 /* FinanceNotebook */;
-			targetProxy = 1A00000000000000000000DB /* PBXContainerItemProxy */;
-		};
 		1A00000000000000000000CA /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 1A00000000000000000000A2 /* FinanceNotebook */;
 			targetProxy = 1A00000000000000000000CB /* PBXContainerItemProxy */;
+		};
+		1A00000000000000000000DA /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 1A00000000000000000000A2 /* FinanceNotebook */;
+			targetProxy = 1A00000000000000000000DB /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -390,11 +398,44 @@
 			};
 			name = Release;
 		};
+		1A00000000000000000000C8 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.mathewabraham.FinanceNotebookUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_TARGET_NAME = FinanceNotebook;
+			};
+			name = Debug;
+		};
+		1A00000000000000000000C9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.mathewabraham.FinanceNotebookUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_TARGET_NAME = FinanceNotebook;
+			};
+			name = Release;
+		};
 		1A00000000000000000000D8 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/FinanceNotebook.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/FinanceNotebook";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -405,6 +446,7 @@
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 1;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/FinanceNotebook.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/FinanceNotebook";
 			};
 			name = Debug;
 		};
@@ -412,7 +454,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/FinanceNotebook.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/FinanceNotebook";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -423,40 +464,7 @@
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 1;
-			};
-			name = Release;
-		};
-		1A00000000000000000000C8 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				TEST_TARGET_NAME = FinanceNotebook;
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.mathewabraham.FinanceNotebookUITests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 1;
-			};
-			name = Debug;
-		};
-		1A00000000000000000000C9 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				TEST_TARGET_NAME = FinanceNotebook;
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.mathewabraham.FinanceNotebookUITests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 1;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/FinanceNotebook.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/FinanceNotebook";
 			};
 			name = Release;
 		};
@@ -481,20 +489,20 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		1A00000000000000000000D7 /* Build configuration list for PBXNativeTarget "FinanceNotebookTests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				1A00000000000000000000D8 /* Debug */,
-				1A00000000000000000000D9 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
 		1A00000000000000000000C7 /* Build configuration list for PBXNativeTarget "FinanceNotebookUITests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				1A00000000000000000000C8 /* Debug */,
 				1A00000000000000000000C9 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		1A00000000000000000000D7 /* Build configuration list for PBXNativeTarget "FinanceNotebookTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1A00000000000000000000D8 /* Debug */,
+				1A00000000000000000000D9 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
