@@ -28,6 +28,26 @@
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       shouldUseLaunchSchemeArgsEnv = "YES">
       <Testables>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "1A00000000000000000000D1"
+               BuildableName = "FinanceNotebookTests.xctest"
+               BlueprintName = "FinanceNotebookTests"
+               ReferencedContainer = "container:FinanceNotebook.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "1A00000000000000000000C1"
+               BuildableName = "FinanceNotebookUITests.xctest"
+               BlueprintName = "FinanceNotebookUITests"
+               ReferencedContainer = "container:FinanceNotebook.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
       </Testables>
    </TestAction>
    <LaunchAction
