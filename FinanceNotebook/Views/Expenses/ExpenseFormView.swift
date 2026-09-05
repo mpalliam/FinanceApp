@@ -105,7 +105,7 @@ struct ExpenseFormView: View {
                 .foregroundStyle(.secondary)
             Button("Add Category") { isAddingCategory = true }
                 .buttonStyle(.borderedProminent)
-                .accessibilityIdentifier("addCategoryButton")
+                .accessibilityIdentifier("formAddCategoryButton")
         }
         .padding(.vertical, 4)
     }

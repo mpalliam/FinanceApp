@@ -9,20 +9,22 @@ struct RootView: View {
     @Query(sort: [SortDescriptor(\MonthlyPlan.monthKey, order: .reverse)])
     private var plans: [MonthlyPlan]
 
-    /// The plan for the current calendar month if there is one, otherwise the
-    /// most recent plan. Month selection proper comes in a later milestone.
+    /// Resolved once, here, and handed to both tabs. That is what stops
+    /// Expenses and Plan from ever showing different months.
     private var currentPlan: MonthlyPlan? {
-        let calendar = Calendar.current
-        let key = MonthlyPlan.makeMonthKey(
-            month: calendar.component(.month, from: Date()),
-            year: calendar.component(.year, from: Date())
-        )
-        return plans.first { $0.monthKey == key } ?? plans.first
+        MonthlyPlan.current(from: plans)
     }
 
     var body: some View {
         if let plan = currentPlan {
-            ExpenseListView(plan: plan)
+            // The Tab type is iOS 18+, and this app targets iOS 17.
+            TabView {
+                ExpenseListView(plan: plan)
+                    .tabItem { Label("Expenses", systemImage: "list.bullet") }
+
+                MonthlyPlanView(plan: plan)
+                    .tabItem { Label("Plan", systemImage: "chart.pie") }
+            }
         } else {
             NoMonthView()
         }
