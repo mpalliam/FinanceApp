@@ -34,8 +34,8 @@ final class PlanFlowUITests: XCTestCase {
     }
 
     private func openExpenses(_ app: XCUIApplication) {
-        let tab = app.tabBars.buttons["Expenses"]
-        XCTAssertTrue(tab.waitForExistence(timeout: 20), "Expenses tab never appeared")
+        let tab = app.tabBars.buttons["Transactions"]
+        XCTAssertTrue(tab.waitForExistence(timeout: 20), "Transactions tab never appeared")
         tab.tap()
     }
 

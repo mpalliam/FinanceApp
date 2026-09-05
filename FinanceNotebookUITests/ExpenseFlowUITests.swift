@@ -19,7 +19,15 @@ final class ExpenseFlowUITests: XCTestCase {
             app.launchArguments.append("-uiTestSeedExpense")
         }
         app.launch()
+        openTransactions(app)
         return app
+    }
+
+    /// Home is the first tab now, so the expense list has to be selected.
+    private func openTransactions(_ app: XCUIApplication) {
+        let tab = app.tabBars.buttons["Transactions"]
+        XCTAssertTrue(tab.waitForExistence(timeout: 20), "Transactions tab never appeared")
+        tab.tap()
     }
 
     /// Relaunches with no arguments, so nothing is reset or seeded and only what
@@ -29,6 +37,7 @@ final class ExpenseFlowUITests: XCTestCase {
         XCTAssertEqual(app.state, .notRunning, "App did not actually terminate")
         app.launchArguments = []
         app.launch()
+        openTransactions(app)
     }
 
     private func type(_ text: String, into field: XCUIElement) {

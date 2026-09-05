@@ -299,7 +299,7 @@ final class MoneyAddedFlowUITests: XCTestCase {
         assertSummary("summarySafeToSpend", contains: "1,485.28", in: app,
                       "Safe to Spend did not combine spending and money added")
 
-        app.tabBars.buttons["Expenses"].tap()
+        app.tabBars.buttons["Transactions"].tap()
         XCTAssertTrue(app.buttons["expense-Chipotle"].waitForExistence(timeout: 10),
                       "The expense disappeared once Money Added existed")
     }
