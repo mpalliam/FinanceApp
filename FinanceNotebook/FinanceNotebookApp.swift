@@ -32,7 +32,14 @@ struct FinanceNotebookApp: App {
 
     var body: some Scene {
         WindowGroup {
-            DevDataView()
+            RootView()
+                #if DEBUG
+                .onAppear {
+                    DevelopmentSupport.applyLaunchArguments(
+                        context: modelContainer.mainContext
+                    )
+                }
+                #endif
         }
         .modelContainer(modelContainer)
     }
