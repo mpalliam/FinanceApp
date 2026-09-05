@@ -11,6 +11,7 @@ enum DevelopmentSupport {
     static let resetArgument = "-uiTestReset"
     static let seedMonthArgument = "-uiTestSeedMonth"
     static let seedExpenseArgument = "-uiTestSeedExpense"
+    static let seedMoneyAddedArgument = "-uiTestSeedMoneyAdded"
 
     private static var arguments: [String] { ProcessInfo.processInfo.arguments }
 
@@ -22,6 +23,9 @@ enum DevelopmentSupport {
             let plan = seedCurrentMonth(context: context)
             if arguments.contains(seedExpenseArgument), let plan {
                 seedSampleExpense(in: plan, context: context)
+            }
+            if arguments.contains(seedMoneyAddedArgument), let plan {
+                seedSampleMoneyAdded(in: plan, context: context)
             }
         }
     }
@@ -84,6 +88,24 @@ enum DevelopmentSupport {
         } catch {
             print("Seeding failed: \(error.localizedDescription)")
             return nil
+        }
+    }
+
+    /// A single Refund entry, so edit and delete tests start from a known
+    /// record. The add test deliberately does not use this: it types its own.
+    static func seedSampleMoneyAdded(in plan: MonthlyPlan, context: ModelContext) {
+        guard plan.moneyAdded.isEmpty else { return }
+        do {
+            try MoneyAddedService.createEntry(
+                amount: Decimal(string: "100.00") ?? .zero,
+                date: plan.contains(Date()) ? Date() : (plan.monthInterval?.start ?? Date()),
+                source: "Refund",
+                note: nil,
+                plan: plan,
+                context: context
+            )
+        } catch {
+            print("Seeding money added failed: \(error.localizedDescription)")
         }
     }
 

@@ -29,6 +29,7 @@ struct MonthlyPlanView: View {
                 summarySection
                 budgetsSection
                 uncategorizedSection
+                MoneyAddedSection(plan: plan)
             }
             .navigationTitle("Plan")
             .toolbar {
@@ -77,7 +78,7 @@ struct MonthlyPlanView: View {
     private var summarySection: some View {
         Section(plan.displayTitle.uppercased()) {
             money("Starting Money", summary.startingBalance, id: "summaryStartingMoney")
-            money("Money Added", summary.moneyAdded, id: "summaryMoneyAdded")
+            moneyAddedRow
             money("Total Money", summary.totalMoney, id: "summaryTotalMoney")
 
             money("Spent", summary.totalSpent, id: "summarySpent")
@@ -100,6 +101,28 @@ struct MonthlyPlanView: View {
             Button("Edit Starting & Protected Money") { isEditingMoney = true }
                 .accessibilityIdentifier("editPlanMoneyButton")
         }
+    }
+
+    /// Signed once there is something to add, so it reads as money coming in
+    /// rather than as a balance. The entry count is derived from the
+    /// relationship, never stored.
+    private var moneyAddedRow: some View {
+        let count = plan.moneyAdded.count
+        return LabeledContent {
+            Text(count > 0 ? summary.moneyAdded.signedCurrencyText
+                           : summary.moneyAdded.currencyText)
+                .font(.body.monospacedDigit())
+        } label: {
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Money Added")
+                if count > 0 {
+                    Text("\(count) \(count == 1 ? "entry" : "entries")")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+        }
+        .accessibilityIdentifier("summaryMoneyAdded")
     }
 
     private func money(_ label: String, _ amount: Decimal, id: String) -> some View {
