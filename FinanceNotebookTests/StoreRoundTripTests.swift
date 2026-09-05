@@ -31,7 +31,7 @@ final class StoreRoundTripTests: XCTestCase {
 
     /// A fresh container pointed at the same file, always through the plan.
     private func makeContainer() throws -> ModelContainer {
-        let schema = Schema(versionedSchema: FinanceNotebookSchemaV1.self)
+        let schema = Schema(versionedSchema: FinanceNotebookSchemaV2.self)
         let configuration = ModelConfiguration(
             schema: schema,
             url: storeURL,

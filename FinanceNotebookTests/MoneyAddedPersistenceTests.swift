@@ -23,7 +23,7 @@ final class MoneyAddedPersistenceTests: XCTestCase {
     }
 
     private func makeContainer() throws -> ModelContainer {
-        let schema = Schema(versionedSchema: FinanceNotebookSchemaV1.self)
+        let schema = Schema(versionedSchema: FinanceNotebookSchemaV2.self)
         return try ModelContainer(
             for: schema,
             migrationPlan: FinanceNotebookMigrationPlan.self,

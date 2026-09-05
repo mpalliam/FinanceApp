@@ -10,7 +10,7 @@ final class FinanceCalculatorTests: XCTestCase {
 
     override func setUpWithError() throws {
         container = try ModelContainer(
-            for: Schema(versionedSchema: FinanceNotebookSchemaV1.self),
+            for: Schema(versionedSchema: FinanceNotebookSchemaV2.self),
             migrationPlan: FinanceNotebookMigrationPlan.self,
             configurations: [ModelConfiguration(isStoredInMemoryOnly: true)]
         )
@@ -329,5 +329,100 @@ final class FinanceCalculatorTests: XCTestCase {
         let text = dec("-75").currencyText
         XCTAssertFalse(text.contains("$-"), "Malformed negative currency: \(text)")
         XCTAssertTrue(text.contains("75"))
+    }
+}
+
+/// The "near limit" rule reviews use to decide which budgets are worth
+/// mentioning. Threshold is 80% of the budget.
+final class CategoryAttentionTests: XCTestCase {
+
+    private var container: ModelContainer!
+    private var context: ModelContext!
+    private var plan: MonthlyPlan!
+
+    override func setUpWithError() throws {
+        container = try ModelContainer(
+            for: Schema(versionedSchema: FinanceNotebookSchemaV2.self),
+            migrationPlan: FinanceNotebookMigrationPlan.self,
+            configurations: [ModelConfiguration(isStoredInMemoryOnly: true)]
+        )
+        context = ModelContext(container)
+        plan = try MonthlyPlanService.createPlan(
+            month: 9, year: 2026,
+            startingBalance: Decimal(string: "5000")!, protectedAmount: .zero,
+            context: context
+        )
+    }
+
+    override func tearDown() {
+        plan = nil; context = nil; container = nil
+    }
+
+    private func dec(_ v: String) -> Decimal { Decimal(string: v)! }
+
+    private func category(_ name: String, budget: String, spent: String)
+        throws -> BudgetCategory {
+        let category = try BudgetCategoryService.createCategory(
+            name: name, monthlyBudget: dec(budget), type: .flexible,
+            plan: plan, context: context
+        )
+        if dec(spent) > 0 {
+            try ExpenseService.createExpense(
+                amount: dec(spent),
+                date: Calendar.current.date(
+                    from: DateComponents(year: 2026, month: 9, day: 4))!,
+                merchant: name, note: nil, category: category,
+                plan: plan, context: context
+            )
+        }
+        return category
+    }
+
+    func testJustUnderTheThresholdIsNotNearLimit() throws {
+        let category = try category("Eating Out", budget: "200", spent: "159")
+        XCTAssertFalse(FinanceCalculator.needsAttention(category),
+                       "159 of 200 is 79.5%, below the 80% threshold")
+    }
+
+    func testExactlyAtTheThresholdIsNearLimit() throws {
+        let category = try category("Eating Out", budget: "200", spent: "160")
+        XCTAssertTrue(FinanceCalculator.needsAttention(category),
+                      "160 of 200 is exactly 80%")
+    }
+
+    func testOverBudgetIsAlwaysNearLimit() throws {
+        let category = try category("Eating Out", budget: "200", spent: "215")
+        XCTAssertTrue(FinanceCalculator.needsAttention(category))
+        XCTAssertTrue(FinanceCalculator.isOverBudget(category))
+    }
+
+    /// Zero budget with spending needs attention; without, it does not, and
+    /// neither case may divide by zero.
+    func testZeroBudgetWithSpendingNeedsAttention() throws {
+        let spending = try category("Misc", budget: "0", spent: "20")
+        XCTAssertTrue(FinanceCalculator.needsAttention(spending))
+        XCTAssertNil(FinanceCalculator.progress(for: spending))
+    }
+
+    func testZeroBudgetWithoutSpendingDoesNotNeedAttention() throws {
+        let untouched = try category("Gym", budget: "0", spent: "0")
+        XCTAssertFalse(FinanceCalculator.needsAttention(untouched),
+                       "An untouched zero-budget category is not near anything")
+        XCTAssertNil(FinanceCalculator.progress(for: untouched))
+    }
+
+    func testAnUntouchedBudgetDoesNotNeedAttention() throws {
+        let category = try category("Gym", budget: "100", spent: "0")
+        XCTAssertFalse(FinanceCalculator.needsAttention(category))
+    }
+
+    func testTheListIsFilteredAndOrderedBySpending() throws {
+        try category("Fine", budget: "500", spent: "10")
+        try category("Close", budget: "200", spent: "180")
+        try category("Over", budget: "100", spent: "150")
+
+        let flagged = FinanceCalculator.categoriesNeedingAttention(for: plan)
+        XCTAssertEqual(flagged.map(\.name), ["Close", "Over"],
+                       "Expected only the two at risk, most spent first")
     }
 }

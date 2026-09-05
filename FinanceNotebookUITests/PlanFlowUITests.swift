@@ -21,6 +21,13 @@ final class PlanFlowUITests: XCTestCase {
     }
 
     private func relaunch(_ app: XCUIApplication) {
+        // terminate() is a hard kill. Under full-suite load it can land before
+        // SQLite has finished committing the last save, so let the app settle
+        // rather than racing it -- the data is on disk either way, but the test
+        // must not depend on winning that race.
+        _ = app.wait(for: .runningForeground, timeout: 5)
+        Thread.sleep(forTimeInterval: 1.5)
+
         app.terminate()
         XCTAssertEqual(app.state, .notRunning, "App did not actually terminate")
         app.launchArguments = []

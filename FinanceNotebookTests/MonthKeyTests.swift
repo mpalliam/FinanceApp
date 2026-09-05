@@ -9,7 +9,7 @@ final class MonthKeyTests: XCTestCase {
 
     override func setUpWithError() throws {
         container = try ModelContainer(
-            for: Schema(versionedSchema: FinanceNotebookSchemaV1.self),
+            for: Schema(versionedSchema: FinanceNotebookSchemaV2.self),
             migrationPlan: FinanceNotebookMigrationPlan.self,
             configurations: [ModelConfiguration(isStoredInMemoryOnly: true)]
         )
