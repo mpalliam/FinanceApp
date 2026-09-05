@@ -4,6 +4,12 @@ import SwiftData
 enum BudgetCategoryError: Error, Equatable {
     case blankName
     case negativeBudget
+
+    /// The month has been closed and is read-only.
+    case planIsClosed(monthTitle: String)
+
+    /// The category is not attached to a month at all.
+    case missingPlan
 }
 
 extension BudgetCategoryError: LocalizedError {
@@ -14,6 +20,10 @@ extension BudgetCategoryError: LocalizedError {
             "Enter a name for this category."
         case .negativeBudget:
             "A monthly budget cannot be negative."
+        case .planIsClosed(let monthTitle):
+            "\(monthTitle) is closed. Categories cannot be changed in a closed month."
+        case .missingPlan:
+            "This category is not attached to a month."
         }
     }
 }
@@ -30,6 +40,8 @@ enum BudgetCategoryService {
         plan: MonthlyPlan,
         context: ModelContext
     ) throws -> BudgetCategory {
+
+        try requireOpen(plan)
 
         let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { throw BudgetCategoryError.blankName }
@@ -57,6 +69,9 @@ enum BudgetCategoryService {
         type: CategoryType,
         context: ModelContext
     ) throws {
+        guard let plan = category.plan else { throw BudgetCategoryError.missingPlan }
+        try requireOpen(plan)
+
         let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { throw BudgetCategoryError.blankName }
         guard monthlyBudget >= 0 else { throw BudgetCategoryError.negativeBudget }
@@ -72,7 +87,15 @@ enum BudgetCategoryService {
     /// nullify rule leaves them in place with no category, so the money still
     /// counts toward the month. Callers must say so before asking to confirm.
     static func deleteCategory(_ category: BudgetCategory, context: ModelContext) throws {
+        if let plan = category.plan { try requireOpen(plan) }
         context.delete(category)
         try context.save()
+    }
+
+    /// A closed month is history and does not accept changes.
+    private static func requireOpen(_ plan: MonthlyPlan) throws {
+        guard !plan.isClosed else {
+            throw BudgetCategoryError.planIsClosed(monthTitle: plan.displayTitle)
+        }
     }
 }

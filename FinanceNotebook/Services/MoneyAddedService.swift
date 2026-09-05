@@ -11,6 +11,9 @@ enum MoneyAddedError: Error, Equatable {
 
     /// The entry is not attached to a month at all.
     case missingPlan
+
+    /// The month has been closed and is read-only.
+    case planIsClosed(monthTitle: String)
 }
 
 extension MoneyAddedError: LocalizedError {
@@ -25,6 +28,8 @@ extension MoneyAddedError: LocalizedError {
             "Pick a date in \(monthTitle). This entry belongs to that month."
         case .missingPlan:
             "This entry is not attached to a month."
+        case .planIsClosed(let monthTitle):
+            "\(monthTitle) is closed. Money Added cannot be changed in a closed month."
         }
     }
 }
@@ -48,6 +53,8 @@ enum MoneyAddedService {
         plan: MonthlyPlan,
         context: ModelContext
     ) throws -> MoneyAddedEntry {
+
+        try requireOpen(plan)
 
         let clean = try validate(
             amount: amount, date: date, source: source, note: note, plan: plan
@@ -79,6 +86,7 @@ enum MoneyAddedService {
     ) throws {
 
         guard let plan = entry.plan else { throw MoneyAddedError.missingPlan }
+        try requireOpen(plan)
 
         let clean = try validate(
             amount: amount, date: date, source: source, note: note, plan: plan
@@ -97,8 +105,18 @@ enum MoneyAddedService {
     /// Removes the entry only. Expenses and the month itself are untouched;
     /// the month simply has that much less money available.
     static func deleteEntry(_ entry: MoneyAddedEntry, context: ModelContext) throws {
+        if let plan = entry.plan { try requireOpen(plan) }
         context.delete(entry)
         try context.save()
+    }
+
+    // MARK: - Closure
+
+    /// A closed month is history and does not accept changes.
+    private static func requireOpen(_ plan: MonthlyPlan) throws {
+        guard !plan.isClosed else {
+            throw MoneyAddedError.planIsClosed(monthTitle: plan.displayTitle)
+        }
     }
 
     // MARK: - Validation

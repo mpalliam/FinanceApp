@@ -15,6 +15,9 @@ enum ExpenseError: Error, Equatable {
 
     /// The expense is not attached to a month at all.
     case missingPlan
+
+    /// The month has been closed and is read-only.
+    case planIsClosed(monthTitle: String)
 }
 
 extension ExpenseError: LocalizedError {
@@ -33,6 +36,8 @@ extension ExpenseError: LocalizedError {
             "Pick a date in \(monthTitle). This expense belongs to that month."
         case .missingPlan:
             "This expense is not attached to a month."
+        case .planIsClosed(let monthTitle):
+            "\(monthTitle) is closed. Expenses cannot be changed in a closed month."
         }
     }
 }
@@ -53,6 +58,8 @@ enum ExpenseService {
         plan: MonthlyPlan,
         context: ModelContext
     ) throws -> Expense {
+
+        try requireOpen(plan)
 
         let clean = try validate(
             amount: amount, date: date, merchant: merchant,
@@ -87,6 +94,7 @@ enum ExpenseService {
     ) throws {
 
         guard let plan = expense.plan else { throw ExpenseError.missingPlan }
+        try requireOpen(plan)
 
         let clean = try validate(
             amount: amount, date: date, merchant: merchant,
@@ -105,8 +113,19 @@ enum ExpenseService {
     // MARK: - Delete
 
     static func deleteExpense(_ expense: Expense, context: ModelContext) throws {
+        if let plan = expense.plan { try requireOpen(plan) }
         context.delete(expense)
         try context.save()
+    }
+
+    // MARK: - Closure
+
+    /// A closed month is history. Nothing may be added to, changed in, or
+    /// removed from it, whatever route the caller took to get here.
+    private static func requireOpen(_ plan: MonthlyPlan) throws {
+        guard !plan.isClosed else {
+            throw ExpenseError.planIsClosed(monthTitle: plan.displayTitle)
+        }
     }
 
     // MARK: - Validation
