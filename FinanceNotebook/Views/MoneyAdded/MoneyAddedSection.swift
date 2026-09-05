@@ -32,26 +32,30 @@ struct MoneyAddedSection: View {
                     }
                     .accessibilityIdentifier("moneyAdded-\(entry.source)")
                     .swipeActions(edge: .trailing) {
-                        // Asks first: a swipe must not destroy a record.
-                        Button(role: .destructive) {
-                            entryPendingDeletion = entry
-                        } label: {
-                            Label("Delete", systemImage: "trash")
+                        if !plan.isClosed {
+                            // Asks first: a swipe must not destroy a record.
+                            Button(role: .destructive) {
+                                entryPendingDeletion = entry
+                            } label: {
+                                Label("Delete", systemImage: "trash")
+                            }
                         }
                     }
                 }
             }
 
-            Button("Add Money") { isAddingMoney = true }
-                .accessibilityIdentifier("addMoneyButton")
+            if !plan.isClosed {
+                Button("Add Money") { isAddingMoney = true }
+                    .accessibilityIdentifier("addMoneyButton")
                 // The sheet hangs off the button, not off the Section. A
                 // Section is not a real view in the presentation hierarchy, so
                 // a .sheet attached to one never presents. (.confirmationDialog
                 // on a Section does work, which makes the difference easy to
                 // miss.)
-                .sheet(isPresented: $isAddingMoney) {
-                    AddMoneyAddedView(plan: plan)
-                }
+                    .sheet(isPresented: $isAddingMoney) {
+                        AddMoneyAddedView(plan: plan)
+                    }
+            }
         }
         .confirmationDialog(
             "Delete Money Added?",

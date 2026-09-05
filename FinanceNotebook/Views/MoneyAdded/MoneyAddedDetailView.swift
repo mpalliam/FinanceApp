@@ -12,6 +12,9 @@ struct MoneyAddedDetailView: View {
     @State private var isConfirmingDelete = false
     @State private var errorMessage: String?
 
+    /// A closed month is history: it can be read, not rewritten.
+    private var isEditable: Bool { !(entry.plan?.isClosed ?? false) }
+
     var body: some View {
         List {
             Section {
@@ -33,19 +36,23 @@ struct MoneyAddedDetailView: View {
                 }
             }
 
-            Section {
-                Button("Delete Money Added", role: .destructive) {
-                    isConfirmingDelete = true
+            if isEditable {
+                Section {
+                    Button("Delete Money Added", role: .destructive) {
+                        isConfirmingDelete = true
+                    }
+                    .accessibilityIdentifier("deleteMoneyButton")
                 }
-                .accessibilityIdentifier("deleteMoneyButton")
             }
         }
         .navigationTitle("Money Added")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button("Edit") { isEditing = true }
-                    .accessibilityIdentifier("editMoneyButton")
+            if isEditable {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Edit") { isEditing = true }
+                        .accessibilityIdentifier("editMoneyButton")
+                }
             }
         }
         .sheet(isPresented: $isEditing) {

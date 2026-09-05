@@ -31,16 +31,21 @@ struct ExpenseListView: View {
                     expenseList
                 }
             }
-            .navigationTitle("Expenses")
+            .navigationTitle("Transactions")
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        isAddingExpense = true
-                    } label: {
-                        Label("Add Expense", systemImage: "plus")
+                ToolbarItem(placement: .topBarLeading) {
+                    MonthSelectorButton(plan: plan)
+                }
+                if !plan.isClosed {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button {
+                            isAddingExpense = true
+                        } label: {
+                            Label("Add Expense", systemImage: "plus")
+                        }
+                        .accessibilityIdentifier("addExpenseButton")
+                        .accessibilityLabel("Add Expense")
                     }
-                    .accessibilityIdentifier("addExpenseButton")
-                    .accessibilityLabel("Add Expense")
                 }
             }
             .sheet(isPresented: $isAddingExpense) {
@@ -93,11 +98,13 @@ struct ExpenseListView: View {
                         }
                         .accessibilityIdentifier("expense-\(expense.merchant)")
                         .swipeActions(edge: .trailing) {
-                            // Asks first: a swipe must not destroy a record.
-                            Button(role: .destructive) {
-                                expensePendingDeletion = expense
-                            } label: {
-                                Label("Delete", systemImage: "trash")
+                            if !plan.isClosed {
+                                // Asks first: a swipe must not destroy a record.
+                                Button(role: .destructive) {
+                                    expensePendingDeletion = expense
+                                } label: {
+                                    Label("Delete", systemImage: "trash")
+                                }
                             }
                         }
                     }
@@ -112,9 +119,11 @@ struct ExpenseListView: View {
         } description: {
             Text("Record your first purchase to start tracking where your money goes.")
         } actions: {
-            Button("Add Expense") { isAddingExpense = true }
-                .buttonStyle(.borderedProminent)
-                .accessibilityIdentifier("emptyStateAddExpenseButton")
+            if !plan.isClosed {
+                Button("Add Expense") { isAddingExpense = true }
+                    .buttonStyle(.borderedProminent)
+                    .accessibilityIdentifier("emptyStateAddExpenseButton")
+            }
         }
     }
 

@@ -12,12 +12,22 @@ enum DevelopmentSupport {
     static let seedMonthArgument = "-uiTestSeedMonth"
     static let seedExpenseArgument = "-uiTestSeedExpense"
     static let seedMoneyAddedArgument = "-uiTestSeedMoneyAdded"
+    static let seedPreviousMonthArgument = "-uiTestSeedPreviousMonth"
+    static let clearSelectionArgument = "-uiTestClearMonthSelection"
 
     private static var arguments: [String] { ProcessInfo.processInfo.arguments }
 
     static func applyLaunchArguments(context: ModelContext) {
         if arguments.contains(resetArgument) {
             deleteEverything(context: context)
+        }
+        if arguments.contains(clearSelectionArgument) || arguments.contains(resetArgument) {
+            // The chosen month lives in UserDefaults, which survives a store
+            // reset, so a test starting from empty has to clear it too.
+            UserDefaults.standard.removeObject(forKey: "selectedMonthKey")
+        }
+        if arguments.contains(seedPreviousMonthArgument) {
+            seedPreviousMonth(context: context)
         }
         if arguments.contains(seedMonthArgument) {
             let plan = seedCurrentMonth(context: context)
@@ -106,6 +116,35 @@ enum DevelopmentSupport {
             )
         } catch {
             print("Seeding money added failed: \(error.localizedDescription)")
+        }
+    }
+
+    /// The month before this one, so month-switching tests have two to move
+    /// between with visibly different figures.
+    @discardableResult
+    static func seedPreviousMonth(context: ModelContext) -> MonthlyPlan? {
+        let calendar = Calendar.current
+        let now = Date()
+        let month = calendar.component(.month, from: now)
+        let year = calendar.component(.year, from: now)
+        let previous = month == 1 ? (month: 12, year: year - 1) : (month: month - 1, year: year)
+
+        do {
+            if let existing = try MonthlyPlanService.existingPlan(
+                month: previous.month, year: previous.year, context: context
+            ) {
+                return existing
+            }
+            return try MonthlyPlanService.createPlan(
+                month: previous.month,
+                year: previous.year,
+                startingBalance: Decimal(string: "999.00") ?? .zero,
+                protectedAmount: Decimal(string: "500.00") ?? .zero,
+                context: context
+            )
+        } catch {
+            print("Seeding previous month failed: \(error.localizedDescription)")
+            return nil
         }
     }
 

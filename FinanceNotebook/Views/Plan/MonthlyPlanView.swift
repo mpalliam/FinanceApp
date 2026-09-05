@@ -16,6 +16,8 @@ struct MonthlyPlanView: View {
     @State private var categoryBeingEdited: BudgetCategory?
     @State private var categoryPendingDeletion: BudgetCategory?
     @State private var errorMessage: String?
+    @State private var isStartingNextMonth = false
+    @State private var isConfirmingClose = false
 
     private var summary: MonthlySummary { FinanceCalculator.summary(for: plan) }
 
@@ -30,18 +32,39 @@ struct MonthlyPlanView: View {
                 budgetsSection
                 uncategorizedSection
                 MoneyAddedSection(plan: plan)
+                monthActionsSection
             }
             .navigationTitle("Plan")
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        isAddingCategory = true
-                    } label: {
-                        Label("Add Category", systemImage: "plus")
-                    }
-                    .accessibilityIdentifier("addCategoryButton")
-                    .accessibilityLabel("Add Category")
+                ToolbarItem(placement: .topBarLeading) {
+                    MonthSelectorButton(plan: plan)
                 }
+                if !plan.isClosed {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button {
+                            isAddingCategory = true
+                        } label: {
+                            Label("Add Category", systemImage: "plus")
+                        }
+                        .accessibilityIdentifier("addCategoryButton")
+                        .accessibilityLabel("Add Category")
+                    }
+                }
+            }
+            .sheet(isPresented: $isStartingNextMonth) {
+                StartNextMonthView(plan: plan)
+            }
+            .confirmationDialog(
+                "Close \(plan.displayTitle)?",
+                isPresented: $isConfirmingClose,
+                titleVisibility: .visible
+            ) {
+                Button("Close Month") { closeMonth() }
+                    .accessibilityIdentifier("confirmCloseMonthButton")
+                Button("Cancel", role: .cancel) {}
+                    .accessibilityIdentifier("cancelCloseMonthButton")
+            } message: {
+                Text("Closing the month makes it read-only. You can still view all transactions and budgets.")
             }
             .sheet(isPresented: $isEditingMoney) {
                 EditMonthlyPlanView(plan: plan)
@@ -98,8 +121,15 @@ struct MonthlyPlanView: View {
                     .foregroundStyle(.red)
             }
 
-            Button("Edit Starting & Protected Money") { isEditingMoney = true }
-                .accessibilityIdentifier("editPlanMoneyButton")
+            if plan.isClosed {
+                Label("This month is closed. It is read-only.", systemImage: "lock.fill")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                    .accessibilityIdentifier("closedMonthNotice")
+            } else {
+                Button("Edit Starting & Protected Money") { isEditingMoney = true }
+                    .accessibilityIdentifier("editPlanMoneyButton")
+            }
         }
     }
 
@@ -145,19 +175,23 @@ struct MonthlyPlanView: View {
                     CategoryBudgetRow(category: category)
                         .accessibilityIdentifier("categoryRow-\(category.name)")
                         .contentShape(Rectangle())
-                        .onTapGesture { categoryBeingEdited = category }
+                        .onTapGesture {
+                            if !plan.isClosed { categoryBeingEdited = category }
+                        }
                         .swipeActions(edge: .trailing) {
-                            Button(role: .destructive) {
-                                categoryPendingDeletion = category
-                            } label: {
-                                Label("Delete", systemImage: "trash")
+                            if !plan.isClosed {
+                                Button(role: .destructive) {
+                                    categoryPendingDeletion = category
+                                } label: {
+                                    Label("Delete", systemImage: "trash")
+                                }
+                                Button {
+                                    categoryBeingEdited = category
+                                } label: {
+                                    Label("Edit", systemImage: "pencil")
+                                }
+                                .tint(.blue)
                             }
-                            Button {
-                                categoryBeingEdited = category
-                            } label: {
-                                Label("Edit", systemImage: "pencil")
-                            }
-                            .tint(.blue)
                         }
                 }
             }
@@ -201,6 +235,34 @@ struct MonthlyPlanView: View {
         The \(count == 1 ? "expense" : "expenses") will NOT be deleted. \
         \(count == 1 ? "It" : "They") will become Uncategorized.
         """
+    }
+
+    // MARK: - Month lifecycle
+
+    /// Closing and starting the next month are separate actions on purpose: a
+    /// month can be prepared before the current one is finished.
+    private var monthActionsSection: some View {
+        Section("MONTH") {
+            Button("Start Next Month") { isStartingNextMonth = true }
+                .accessibilityIdentifier("startNextMonthButton")
+
+            if plan.isClosed {
+                Label("Closed", systemImage: "lock.fill")
+                    .foregroundStyle(.secondary)
+                    .accessibilityIdentifier("monthClosedLabel")
+            } else {
+                Button("Close Month", role: .destructive) { isConfirmingClose = true }
+                    .accessibilityIdentifier("closeMonthButton")
+            }
+        }
+    }
+
+    private func closeMonth() {
+        do {
+            try MonthlyPlanService.closePlan(plan, context: context)
+        } catch {
+            errorMessage = error.localizedDescription
+        }
     }
 
     private func delete(_ category: BudgetCategory) {
