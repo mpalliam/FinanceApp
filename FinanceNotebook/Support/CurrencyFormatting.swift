@@ -6,7 +6,20 @@ extension Decimal {
     ///
     /// The stored value stays a Decimal; this is presentation only.
     var currencyText: String {
-        formatted(.currency(code: Locale.current.currency?.identifier ?? "USD"))
+        formatted(.currency(code: Self.currencyCode))
+    }
+
+    /// Currency text that always carries its sign, e.g. "+$100.00".
+    ///
+    /// Money Added reads as an addition rather than as a plain balance. The
+    /// sign comes from the formatter, so it lands in the right place for the
+    /// locale -- "+$100.00", never "$+100.00". Zero stays unsigned.
+    var signedCurrencyText: String {
+        formatted(.currency(code: Self.currencyCode).sign(strategy: .always(showZero: false)))
+    }
+
+    private static var currencyCode: String {
+        Locale.current.currency?.identifier ?? "USD"
     }
 }
 
