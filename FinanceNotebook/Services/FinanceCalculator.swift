@@ -92,6 +92,33 @@ enum FinanceCalculator {
         return min(max(value, 0), 1)
     }
 
+    // MARK: - Attention
+
+    /// A category is worth mentioning in a review once it has used this much of
+    /// its budget. 80% is a deliberate, documented choice, not a tuned number:
+    /// it is late enough to matter and early enough to still act on.
+    static let attentionThreshold = Decimal(string: "0.8")!
+
+    /// Whether a category deserves a mention in a weekly check-in.
+    ///
+    /// Over budget always counts. A category with no budget counts only once
+    /// something has been spent against it -- an untouched zero-budget category
+    /// is not "near" anything, and asking about it would be noise.
+    static func needsAttention(_ category: BudgetCategory) -> Bool {
+        if isOverBudget(category) { return true }
+        guard let fraction = progress(for: category) else {
+            return spent(in: category) > 0
+        }
+        return fraction >= attentionThreshold
+    }
+
+    /// The month's categories that deserve attention, most used first.
+    static func categoriesNeedingAttention(for plan: MonthlyPlan) -> [BudgetCategory] {
+        plan.categories
+            .filter(needsAttention)
+            .sorted { spent(in: $0) > spent(in: $1) }
+    }
+
     // MARK: - Uncategorized
 
     /// Expenses whose category was deleted. They keep counting toward the
