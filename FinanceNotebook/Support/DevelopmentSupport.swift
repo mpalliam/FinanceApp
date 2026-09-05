@@ -149,18 +149,34 @@ enum DevelopmentSupport {
     }
 
     static func deleteEverything(context: ModelContext) {
+        // Children before parents, saving between each level. Deleting plans
+        // first cascades to their expenses, and a list fetched before that
+        // cascade then contains objects whose backing data is gone -- SwiftData
+        // traps on those rather than skipping them.
         do {
-            // Deleting the plans cascades to categories, expenses and additions.
-            for plan in try context.fetch(FetchDescriptor<MonthlyPlan>()) {
-                context.delete(plan)
-            }
-            // Anything orphaned by an earlier nullify.
-            for expense in try context.fetch(FetchDescriptor<Expense>()) {
-                context.delete(expense)
-            }
+            try deleteAll(WeeklyReview.self, in: context)
+            try deleteAll(MonthlyReview.self, in: context)
+            try context.save()
+
+            try deleteAll(Expense.self, in: context)
+            try deleteAll(MoneyAddedEntry.self, in: context)
+            try context.save()
+
+            try deleteAll(BudgetCategory.self, in: context)
+            try context.save()
+
+            try deleteAll(MonthlyPlan.self, in: context)
             try context.save()
         } catch {
-            print("Reset failed: \(error.localizedDescription)")
+            print("Reset failed: \(error)")
+        }
+    }
+
+    private static func deleteAll<T: PersistentModel>(
+        _ type: T.Type, in context: ModelContext
+    ) throws {
+        for object in try context.fetch(FetchDescriptor<T>()) {
+            context.delete(object)
         }
     }
 }

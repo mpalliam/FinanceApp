@@ -28,6 +28,9 @@ struct RootView: View {
 
                     MonthlyPlanView(plan: plan)
                         .tabItem { Label("Plan", systemImage: "chart.pie") }
+
+                    ReviewView(plan: plan)
+                        .tabItem { Label("Review", systemImage: "text.book.closed") }
                 }
             } else {
                 NoMonthView()

@@ -10,8 +10,8 @@ struct FinanceNotebookApp: App {
     /// list, and the container is given a migration plan, so that a future model
     /// change migrates through a declared stage instead of letting SwiftData
     /// infer a mapping and silently discard rows.
-    private let modelContainer: ModelContainer = {
-        let schema = Schema(versionedSchema: FinanceNotebookSchemaV1.self)
+    private static let modelContainer: ModelContainer = {
+        let schema = Schema(versionedSchema: FinanceNotebookSchemaV2.self)
 
         let configuration = ModelConfiguration(
             schema: schema,
@@ -20,11 +20,23 @@ struct FinanceNotebookApp: App {
         )
 
         do {
-            return try ModelContainer(
+            let container = try ModelContainer(
                 for: schema,
                 migrationPlan: FinanceNotebookMigrationPlan.self,
                 configurations: [configuration]
             )
+            #if DEBUG
+            // Here, not in init() or onAppear. SwiftUI initialises an App more
+            // than once, so an instance property rebuilt the container and ran
+            // the seeding again against a second container over the same file;
+            // and onAppear ran it after RootView had already resolved a plan,
+            // leaving that view holding an object the reset had just deleted.
+            // A static let runs exactly once, before any view can query.
+            // A context of its own: a static initialiser is not guaranteed to run
+            // on the main actor, and mainContext expects to be used there.
+            DevelopmentSupport.applyLaunchArguments(context: ModelContext(container))
+            #endif
+            return container
         } catch {
             fatalError("Could not create the local ModelContainer: \(error)")
         }
@@ -33,14 +45,7 @@ struct FinanceNotebookApp: App {
     var body: some Scene {
         WindowGroup {
             RootView()
-                #if DEBUG
-                .onAppear {
-                    DevelopmentSupport.applyLaunchArguments(
-                        context: modelContainer.mainContext
-                    )
-                }
-                #endif
         }
-        .modelContainer(modelContainer)
+        .modelContainer(Self.modelContainer)
     }
 }
