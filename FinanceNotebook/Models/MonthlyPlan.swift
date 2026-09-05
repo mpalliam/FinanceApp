@@ -71,6 +71,21 @@ extension MonthlyPlan {
         String(format: "%04d-%02d", year, month)
     }
 
+    /// The month the app should be working in: this calendar month if a plan
+    /// exists for it, otherwise the most recent plan.
+    ///
+    /// Static and computed, never stored. It lives here so every screen
+    /// resolves the current month the same way and they cannot disagree.
+    static func current(from plans: [MonthlyPlan]) -> MonthlyPlan? {
+        let calendar = Calendar.current
+        let key = makeMonthKey(
+            month: calendar.component(.month, from: Date()),
+            year: calendar.component(.year, from: Date())
+        )
+        return plans.first { $0.monthKey == key }
+            ?? plans.max { $0.monthKey < $1.monthKey }
+    }
+
     /// The calendar range this plan covers. Computed, never stored.
     var monthInterval: DateInterval? {
         let calendar = Calendar.current

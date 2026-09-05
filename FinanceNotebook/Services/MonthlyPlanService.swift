@@ -80,6 +80,33 @@ enum MonthlyPlanService {
         return plan
     }
 
+    /// Changes the month's starting and protected money.
+    ///
+    /// Only these two are editable. month, year and monthKey stay `private(set)`
+    /// on the model so they cannot drift apart, and nothing here weakens that:
+    /// changing which month a plan is would be a different operation entirely.
+    static func updateMoney(
+        _ plan: MonthlyPlan,
+        startingBalance: Decimal,
+        protectedAmount: Decimal,
+        context: ModelContext
+    ) throws {
+        guard startingBalance >= 0 else {
+            throw MonthlyPlanError.negativeStartingBalance
+        }
+        guard protectedAmount >= 0 else {
+            throw MonthlyPlanError.negativeProtectedAmount
+        }
+
+        // protectedAmount may still exceed startingBalance: money added later
+        // in the month can make that legitimate.
+
+        plan.startingBalance = startingBalance
+        plan.protectedAmount = protectedAmount
+
+        try context.save()
+    }
+
     /// The existing plan for a calendar month, if there is one.
     ///
     /// Looks up by the canonical month key rather than comparing month and year
