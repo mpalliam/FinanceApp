@@ -71,6 +71,30 @@ extension MonthlyPlan {
         String(format: "%04d-%02d", year, month)
     }
 
+    /// The calendar range this plan covers. Computed, never stored.
+    var monthInterval: DateInterval? {
+        let calendar = Calendar.current
+        var components = DateComponents()
+        components.year = year
+        components.month = month
+        guard
+            let start = calendar.date(from: components),
+            let dayRange = calendar.range(of: .day, in: .month, for: start),
+            let end = calendar.date(byAdding: .day, value: dayRange.count, to: start)
+        else { return nil }
+        return DateInterval(start: start, end: end)
+    }
+
+    /// Whether a date falls inside this plan's calendar month.
+    ///
+    /// An expense belongs to a month, so its date has to agree with that month
+    /// rather than quietly sitting outside it.
+    func contains(_ date: Date) -> Bool {
+        let calendar = Calendar.current
+        return calendar.component(.month, from: date) == month
+            && calendar.component(.year, from: date) == year
+    }
+
     /// e.g. "September 2026"
     var displayTitle: String {
         var components = DateComponents()
