@@ -89,6 +89,13 @@ struct ReviewView: View {
                 }
             }
             .accessibilityIdentifier("monthlyReflectionLink")
+
+            NavigationLink {
+                MonthlyReportView(plan: plan)
+            } label: {
+                Text("View Monthly Report")
+            }
+            .accessibilityIdentifier("viewMonthlyReportLink")
         }
     }
 
