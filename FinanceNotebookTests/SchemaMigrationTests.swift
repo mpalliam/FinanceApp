@@ -27,15 +27,15 @@ final class SchemaMigrationTests: XCTestCase {
         storeURL = nil
     }
 
-    private func dec(_ v: String) -> Decimal { Decimal(string: v)! }
+    func dec(_ v: String) -> Decimal { Decimal(string: v)! }
 
-    private func date(_ day: Int, _ month: Int = 9, _ year: Int = 2026) -> Date {
+    func date(_ day: Int, _ month: Int = 9, _ year: Int = 2026) -> Date {
         Calendar.current.date(from: DateComponents(year: year, month: month, day: day))!
     }
 
     /// A container speaking V1 only. No migration plan: this is what the app
     /// looked like before this milestone.
-    private func makeV1Container() throws -> ModelContainer {
+    func makeV1Container() throws -> ModelContainer {
         let schema = Schema(versionedSchema: FinanceNotebookSchemaV1.self)
         return try ModelContainer(
             for: schema,
@@ -47,7 +47,7 @@ final class SchemaMigrationTests: XCTestCase {
 
     /// A container speaking V2, through the migration plan. This is the app as
     /// it now ships.
-    private func makeV2Container() throws -> ModelContainer {
+    func makeV2Container() throws -> ModelContainer {
         let schema = Schema(versionedSchema: FinanceNotebookSchemaV2.self)
         return try ModelContainer(
             for: schema,
@@ -60,7 +60,7 @@ final class SchemaMigrationTests: XCTestCase {
 
     /// Identifiers captured from the V1 store so the same objects can be
     /// recognised after migration rather than merely counted.
-    private struct Fixture {
+    struct Fixture {
         var septemberID: UUID!
         var octoberID: UUID!
         var eatingOutID: UUID!
@@ -76,7 +76,7 @@ final class SchemaMigrationTests: XCTestCase {
     /// Built from the V1 *nested* model types, not the app's live ones, so this
     /// is genuinely a store as Milestone 5 would have written it.
     @discardableResult
-    private func writeV1Store() throws -> Fixture {
+    func writeV1Store() throws -> Fixture {
         typealias V1 = FinanceNotebookSchemaV1
         var fixture = Fixture()
 
@@ -506,5 +506,92 @@ final class SchemaMigrationTests: XCTestCase {
             }
         }
         return names
+    }
+}
+
+/// Reports built from a store that came through the V1 to V2 migration, rather
+/// than from data created fresh. Migration succeeding at the persistence layer
+/// does not by itself mean the graph reads correctly afterwards.
+extension SchemaMigrationTests {
+
+    func testAReportFromMigratedDataIsCorrect() throws {
+        let fixture = try writeV1Store()
+
+        let container = try makeV2Container()
+        let context = ModelContext(container)
+        let september = try XCTUnwrap(
+            try context.fetch(FetchDescriptor<MonthlyPlan>())
+                .first { $0.id == fixture.septemberID }
+        )
+
+        let report = MonthlyReportBuilder.makeReport(for: september, context: context)
+
+        XCTAssertEqual(report.month, 9)
+        XCTAssertEqual(report.year, 2026)
+        XCTAssertTrue(report.isClosed, "The migrated month lost its closed state")
+
+        // The same figures the migration test asserts, arrived at through the
+        // report rather than directly.
+        XCTAssertEqual(report.summary.startingBalance, dec("2400.00"))
+        XCTAssertEqual(report.summary.moneyAdded, dec("100.00"))
+        XCTAssertEqual(report.summary.totalMoney, dec("2500.00"))
+        XCTAssertEqual(report.summary.totalSpent, dec("181.91"))
+        XCTAssertEqual(report.summary.moneyRemaining, dec("2318.09"))
+        XCTAssertEqual(report.summary.safeToSpend, dec("1318.09"))
+
+        // Relationships survived into the report's rows.
+        XCTAssertEqual(report.expenses.count, 5)
+        let chipotle = try XCTUnwrap(report.expenses.first { $0.merchant == "Chipotle" })
+        XCTAssertEqual(chipotle.categoryName, "Eating Out")
+        XCTAssertEqual(chipotle.amount, dec("14.72"))
+
+        let orphan = try XCTUnwrap(report.expenses.first { $0.merchant == "Orphan" })
+        XCTAssertEqual(orphan.categoryName, "Uncategorized")
+        XCTAssertEqual(report.uncategorized?.spent, dec("25.00"))
+
+        XCTAssertEqual(report.moneyAdded.count, 1)
+        XCTAssertEqual(report.moneyAdded.first?.source, "Refund")
+        XCTAssertEqual(report.categories.map(\.name), ["Eating Out"])
+
+        // And it renders.
+        let data = MonthlyReportPDFRenderer.render(report: report, level: .full)
+        XCTAssertEqual(String(decoding: data.prefix(5), as: UTF8.self), "%PDF-")
+        XCTAssertGreaterThan(data.count, 1000)
+    }
+
+    /// Reporting on a migrated store must not write to it either.
+    func testReportingOnAMigratedStoreChangesNothing() throws {
+        let fixture = try writeV1Store()
+
+        let container = try makeV2Container()
+        let context = ModelContext(container)
+        let september = try XCTUnwrap(
+            try context.fetch(FetchDescriptor<MonthlyPlan>())
+                .first { $0.id == fixture.septemberID }
+        )
+
+        let before = [
+            try context.fetchCount(FetchDescriptor<MonthlyPlan>()),
+            try context.fetchCount(FetchDescriptor<BudgetCategory>()),
+            try context.fetchCount(FetchDescriptor<Expense>()),
+            try context.fetchCount(FetchDescriptor<MoneyAddedEntry>()),
+            try context.fetchCount(FetchDescriptor<WeeklyReview>()),
+            try context.fetchCount(FetchDescriptor<MonthlyReview>())
+        ]
+
+        let report = MonthlyReportBuilder.makeReport(for: september, context: context)
+        _ = MonthlyReportPDFRenderer.render(report: report, level: .full)
+
+        let after = [
+            try context.fetchCount(FetchDescriptor<MonthlyPlan>()),
+            try context.fetchCount(FetchDescriptor<BudgetCategory>()),
+            try context.fetchCount(FetchDescriptor<Expense>()),
+            try context.fetchCount(FetchDescriptor<MoneyAddedEntry>()),
+            try context.fetchCount(FetchDescriptor<WeeklyReview>()),
+            try context.fetchCount(FetchDescriptor<MonthlyReview>())
+        ]
+
+        XCTAssertEqual(before, after, "Reporting changed a migrated store")
+        XCTAssertTrue(september.isClosed, "Reporting reopened a migrated closed month")
     }
 }
