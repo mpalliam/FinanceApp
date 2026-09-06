@@ -105,6 +105,7 @@ struct ExpenseListView: View {
                                 } label: {
                                     Label("Delete", systemImage: "trash")
                                 }
+                                .accessibilityIdentifier("swipeDeleteExpenseButton")
                             }
                         }
                     }

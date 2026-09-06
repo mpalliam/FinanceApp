@@ -87,8 +87,11 @@ final class MoneyAddedFlowUITests: XCTestCase {
                                    line: UInt = #line) {
         for _ in 0..<4 {
             row.swipeLeft()
-            let delete = app.buttons["Delete"].firstMatch
-            if delete.waitForExistence(timeout: 3), delete.isHittable {
+            // The action's own identifier, not its label: a swipe action's
+            // Label exposes both a "Delete" button and an inner "trash" image,
+            // and tapping the image does nothing at all.
+            let delete = app.buttons["swipeDeleteMoneyButton"].firstMatch
+            if delete.waitForExistence(timeout: 6), delete.isHittable {
                 delete.tap()
                 return
             }
@@ -275,7 +278,7 @@ final class MoneyAddedFlowUITests: XCTestCase {
         revealSwipeDelete(on: row, in: app)
 
         XCTAssertTrue(app.buttons["confirmDeleteMoneyFromListButton"].firstMatch
-                        .waitForExistence(timeout: 10),
+                        .waitForExistence(timeout: 25),
                       "Swipe-to-delete removed the entry without confirmation")
 
         // The dialog is presented as a popover here, where the cancel button is

@@ -39,6 +39,7 @@ struct MoneyAddedSection: View {
                             } label: {
                                 Label("Delete", systemImage: "trash")
                             }
+                            .accessibilityIdentifier("swipeDeleteMoneyButton")
                         }
                     }
                 }

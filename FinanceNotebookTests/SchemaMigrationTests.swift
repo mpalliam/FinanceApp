@@ -595,3 +595,85 @@ extension SchemaMigrationTests {
         XCTAssertTrue(september.isClosed, "Reporting reopened a migrated closed month")
     }
 }
+
+/// Backing up data that arrived through the V1 to V2 migration, rather than
+/// data created fresh. This is the join between Milestone 6 and Milestone 8:
+/// historical records have to survive not just the migration, but a backup
+/// round trip afterwards.
+extension SchemaMigrationTests {
+
+    func testMigratedDataSurvivesABackupRoundTrip() throws {
+        let fixture = try writeV1Store()
+
+        // Migrate, then back up what came through.
+        let migrated = ModelContext(try makeV2Container())
+        let backup = try BackupService.makeBackup(from: migrated)
+        let before = try BackupRestorer.count(in: migrated)
+
+        XCTAssertEqual(backup.plans.count, 2)
+        XCTAssertEqual(backup.expenses.count, 5)
+
+        // Restore into a store that never saw V1 at all.
+        let freshURL = FileManager.default.temporaryDirectory
+            .appending(path: "FinanceNotebook-fresh-\(UUID().uuidString).store")
+        defer {
+            for suffix in ["", "-shm", "-wal"] {
+                try? FileManager.default.removeItem(
+                    at: URL(fileURLWithPath: freshURL.path + suffix)
+                )
+            }
+        }
+        let schema = Schema(versionedSchema: FinanceNotebookSchemaV2.self)
+        let freshContainer = try ModelContainer(
+            for: schema,
+            migrationPlan: FinanceNotebookMigrationPlan.self,
+            configurations: [
+                ModelConfiguration(schema: schema, url: freshURL, cloudKitDatabase: .none)
+            ]
+        )
+        let fresh = ModelContext(freshContainer)
+
+        try BackupRestorer.restore(
+            try BackupValidator.validate(backup: backup), into: fresh
+        )
+
+        XCTAssertEqual(try BackupRestorer.count(in: fresh), before,
+                       "Migrated data did not survive the backup round trip")
+
+        // The same records, by identity and by relationship.
+        let september = try XCTUnwrap(
+            try fresh.fetch(FetchDescriptor<MonthlyPlan>())
+                .first { $0.id == fixture.septemberID },
+            "The migrated month lost its identity through the backup"
+        )
+        XCTAssertEqual(september.monthKey, "2026-09")
+        XCTAssertEqual(september.startingBalance, dec("2400.00"))
+        XCTAssertTrue(september.isClosed, "The closed flag did not survive")
+
+        let chipotle = try XCTUnwrap(
+            try fresh.fetch(FetchDescriptor<Expense>())
+                .first { $0.id == fixture.chipotleID }
+        )
+        XCTAssertEqual(chipotle.amount, dec("14.72"))
+        XCTAssertEqual(chipotle.category?.id, fixture.eatingOutID,
+                       "Expense -> category did not survive migration plus backup")
+        XCTAssertEqual(chipotle.plan?.id, fixture.septemberID)
+
+        let orphan = try XCTUnwrap(
+            try fresh.fetch(FetchDescriptor<Expense>())
+                .first { $0.id == fixture.orphanID }
+        )
+        XCTAssertNil(orphan.category, "The uncategorized expense gained a category")
+
+        let refund = try XCTUnwrap(
+            try fresh.fetch(FetchDescriptor<MoneyAddedEntry>())
+                .first { $0.id == fixture.refundID }
+        )
+        XCTAssertEqual(refund.amount, dec("100.00"))
+        XCTAssertEqual(refund.plan?.id, fixture.septemberID)
+
+        // And the month still adds up the same way.
+        XCTAssertEqual(FinanceCalculator.totalSpent(for: september), dec("181.91"))
+        XCTAssertEqual(FinanceCalculator.safeToSpend(for: september), dec("1318.09"))
+    }
+}

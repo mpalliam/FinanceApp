@@ -271,7 +271,7 @@ final class PlanFlowUITests: XCTestCase {
             .matching(identifier: "categoryRow-Eating Out").firstMatch
         XCTAssertTrue(row.waitForExistence(timeout: 10), "Seeded category missing")
         row.swipeLeft()
-        app.buttons["Delete"].firstMatch.tap()
+        app.buttons["swipeDeleteCategoryButton"].firstMatch.tap()
 
         XCTAssertTrue(app.buttons["confirmDeleteCategoryButton"].firstMatch
                         .waitForExistence(timeout: 10),

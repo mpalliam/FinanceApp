@@ -185,6 +185,7 @@ struct MonthlyPlanView: View {
                                 } label: {
                                     Label("Delete", systemImage: "trash")
                                 }
+                                .accessibilityIdentifier("swipeDeleteCategoryButton")
                                 Button {
                                     categoryBeingEdited = category
                                 } label: {

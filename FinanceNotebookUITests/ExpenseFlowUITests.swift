@@ -179,7 +179,7 @@ final class ExpenseFlowUITests: XCTestCase {
         XCTAssertTrue(row.waitForExistence(timeout: 20))
         row.swipeLeft()
 
-        app.buttons["Delete"].firstMatch.tap()
+        app.buttons["swipeDeleteExpenseButton"].firstMatch.tap()
 
         XCTAssertTrue(app.buttons["confirmDeleteFromListButton"].firstMatch
                         .waitForExistence(timeout: 10),

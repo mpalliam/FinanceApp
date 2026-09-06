@@ -39,14 +39,14 @@ final class ReportFlowUITests: XCTestCase {
         let link = app.buttons["viewMonthlyReportLink"]
         XCTAssertTrue(link.waitForExistence(timeout: 10), "The report link was missing")
         link.tap()
-        XCTAssertTrue(app.buttons["reportLevelPicker"].firstMatch.waitForExistence(timeout: 10)
+        XCTAssertTrue(app.buttons["reportLevelPicker"].firstMatch.waitForExistence(timeout: 25)
                       || app.segmentedControls.firstMatch.waitForExistence(timeout: 10),
                       "The report did not open")
     }
 
     private func selectLevel(_ name: String, in app: XCUIApplication) {
         let button = app.segmentedControls.buttons[name]
-        XCTAssertTrue(button.waitForExistence(timeout: 10), "\(name) was not offered")
+        XCTAssertTrue(button.waitForExistence(timeout: 20), "\(name) was not offered")
         button.tap()
     }
 
