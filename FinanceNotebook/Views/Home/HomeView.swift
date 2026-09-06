@@ -9,6 +9,7 @@ struct HomeView: View {
 
     @State private var isAddingExpense = false
     @State private var isAddingMoney = false
+    @State private var isShowingSettings = false
 
     private var summary: MonthlySummary { FinanceCalculator.summary(for: plan) }
 
@@ -37,9 +38,21 @@ struct HomeView: View {
             }
             .navigationTitle("Finance Notebook")
             .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button {
+                        isShowingSettings = true
+                    } label: {
+                        Label("Settings", systemImage: "gearshape")
+                    }
+                    .accessibilityIdentifier("settingsButton")
+                    .accessibilityLabel("Settings")
+                }
                 ToolbarItem(placement: .topBarTrailing) {
                     MonthSelectorButton(plan: plan)
                 }
+            }
+            .sheet(isPresented: $isShowingSettings) {
+                SettingsView()
             }
             .sheet(isPresented: $isAddingExpense) {
                 AddExpenseView(plan: plan)
