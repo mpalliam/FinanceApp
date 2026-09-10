@@ -293,8 +293,18 @@ final class PlanFlowUITests: XCTestCase {
         )
         assertSummary("summarySpent", contains: "14.72", in: app,
                       "Deleting a category erased its spending from the month")
-        assertSummary("uncategorizedSpent", contains: "14.72", in: app,
-                      "The orphaned expense is not shown as uncategorized")
+        // Plan's uncategorized row is now a way into the cleanup screen rather
+        // than a read-only total.
+        let uncategorized = app.buttons["uncategorizedLink"]
+        var attempts = 0
+        while !uncategorized.exists && attempts < 12 {
+            app.swipeUp()
+            attempts += 1
+        }
+        XCTAssertTrue(uncategorized.exists,
+                      "The orphaned expense is not offered for cleanup")
+        XCTAssertTrue(uncategorized.label.contains("14.72"),
+                      "Uncategorized spending wrong — got \"\(uncategorized.label)\"")
 
         // And the expense itself is still listed, just without a category.
         openExpenses(app)

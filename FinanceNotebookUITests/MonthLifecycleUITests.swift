@@ -297,8 +297,10 @@ final class MonthLifecycleUITests: XCTestCase {
 
         // Home and Transactions must agree, not just Plan.
         openTab("Home", in: app)
-        XCTAssertTrue(app.staticTexts["This month is closed. It is read-only."].exists,
-                      "Home did not show the month as closed")
+        XCTAssertTrue(
+            app.staticTexts["This month is closed and can no longer be edited."].exists,
+            "Home did not show the month as closed"
+        )
         XCTAssertFalse(app.buttons["homeAddExpenseButton"].exists,
                        "Home still offered Add Expense on a closed month")
         XCTAssertFalse(app.buttons["homeAddMoneyButton"].exists,

@@ -155,7 +155,8 @@ final class MonthlyReportPDFTests: XCTestCase {
                         .contains("Generated while the month was still open."))
 
         try MonthlyPlanService.closePlan(plan, context: context)
-        XCTAssertTrue(text(in: render(.summary)).contains("This month is closed."))
+        XCTAssertTrue(text(in: render(.summary)).contains(FinanceCopy.closedMonthNotice),
+                      "The PDF should use the app's one closed-month sentence")
     }
 
     func testAwkwardDecimalsAppearExactlyInThePDF() throws {

@@ -221,7 +221,7 @@ final class ReportFlowUITests: XCTestCase {
 
         // Still closed, and still read-only.
         openTab("Home", in: app)
-        XCTAssertTrue(findsText("This month is closed. It is read-only.", in: app),
+        XCTAssertTrue(findsText("This month is closed and can no longer be edited.", in: app),
                       "Exporting reopened the month")
         XCTAssertFalse(app.buttons["homeAddExpenseButton"].exists,
                        "The month stopped being read-only after an export")
