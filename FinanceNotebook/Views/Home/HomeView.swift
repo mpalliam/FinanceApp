@@ -91,7 +91,7 @@ struct HomeView: View {
 
     private var closedNotice: some View {
         Section {
-            Label("This month is closed. It is read-only.", systemImage: "lock.fill")
+            Label(FinanceCopy.closedMonthNotice, systemImage: "lock.fill")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .accessibilityIdentifier("closedMonthNotice")

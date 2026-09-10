@@ -237,11 +237,7 @@ struct MonthlyReportView: View {
     }
 
     private func statusText(for category: MonthlyReportSnapshot.CategoryRow) -> String {
-        if category.isOverBudget {
-            return "\(abs(category.remaining).currencyText) over budget"
-        }
-        if category.hasNoBudget { return "No budget set" }
-        return "\(category.remaining.currencyText) remaining"
+        FinanceCopy.budgetStatus(spent: category.spent, budget: category.budget)
     }
 
     private func exportPDF() {

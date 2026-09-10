@@ -38,12 +38,19 @@ struct SettingsView: View {
                     Text("A backup is a complete copy of your notebook that this app can read back. A PDF report is not a backup.")
                 }
 
-                Section("ABOUT") {
+                Section {
+                    LabeledContent("Version", value: Self.appVersion)
+                        .accessibilityIdentifier("appVersion")
                     LabeledContent("Backup Format",
                                    value: "Version \(FinanceNotebookBackup.currentFormatVersion)")
                         .accessibilityIdentifier("backupFormatVersion")
                     LabeledContent("Data Schema",
                                    value: "V\(FinanceNotebookBackup.currentSchemaVersion)")
+                } header: {
+                    Text("ABOUT")
+                } footer: {
+                    // Said once, here, rather than as a warning on every export.
+                    Text("Backup files contain your financial history. Store them somewhere you trust.")
                 }
             }
             .navigationTitle("Settings")
@@ -74,6 +81,14 @@ struct SettingsView: View {
                 Text(errorMessage ?? "")
             }
         }
+    }
+
+    /// Read from the bundle rather than written down, so it cannot go stale.
+    private static var appVersion: String {
+        let info = Bundle.main.infoDictionary
+        let version = info?["CFBundleShortVersionString"] as? String ?? "1.0"
+        let build = info?["CFBundleVersion"] as? String ?? "1"
+        return "\(version) (\(build))"
     }
 
     private func exportBackup() {

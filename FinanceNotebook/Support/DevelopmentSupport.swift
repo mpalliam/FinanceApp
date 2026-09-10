@@ -13,6 +13,7 @@ enum DevelopmentSupport {
     static let seedExpenseArgument = "-uiTestSeedExpense"
     static let seedMoneyAddedArgument = "-uiTestSeedMoneyAdded"
     static let seedPreviousMonthArgument = "-uiTestSeedPreviousMonth"
+    static let seedUncategorizedArgument = "-uiTestSeedUncategorized"
     static let clearSelectionArgument = "-uiTestClearMonthSelection"
 
     private static var arguments: [String] { ProcessInfo.processInfo.arguments }
@@ -36,6 +37,9 @@ enum DevelopmentSupport {
             }
             if arguments.contains(seedMoneyAddedArgument), let plan {
                 seedSampleMoneyAdded(in: plan, context: context)
+            }
+            if arguments.contains(seedUncategorizedArgument), let plan {
+                seedUncategorizedExpenses(in: plan, context: context)
             }
         }
     }
@@ -145,6 +149,29 @@ enum DevelopmentSupport {
         } catch {
             print("Seeding previous month failed: \(error.localizedDescription)")
             return nil
+        }
+    }
+
+    /// Three expenses whose category is then deleted, which is the only way
+    /// uncategorized spending actually arises.
+    static func seedUncategorizedExpenses(in plan: MonthlyPlan, context: ModelContext) {
+        do {
+            let doomed = try BudgetCategoryService.createCategory(
+                name: "Old Category", monthlyBudget: .zero, type: .flexible,
+                plan: plan, context: context
+            )
+            let day = plan.contains(Date()) ? Date() : (plan.monthInterval?.start ?? Date())
+            for (name, amount) in [("Taco Bell", "9.88"), ("Uber", "21.50"),
+                                   ("Newsstand", "4.25")] {
+                try ExpenseService.createExpense(
+                    amount: Decimal(string: amount) ?? .zero, date: day,
+                    merchant: name, note: nil, category: doomed,
+                    plan: plan, context: context
+                )
+            }
+            try BudgetCategoryService.deleteCategory(doomed, context: context)
+        } catch {
+            print("Seeding uncategorized failed: \(error.localizedDescription)")
         }
     }
 

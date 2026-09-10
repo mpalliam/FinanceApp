@@ -18,6 +18,7 @@ struct MonthlyPlanView: View {
     @State private var errorMessage: String?
     @State private var isStartingNextMonth = false
     @State private var isConfirmingClose = false
+    @State private var isShowingUncategorized = false
 
     private var summary: MonthlySummary { FinanceCalculator.summary(for: plan) }
 
@@ -54,6 +55,9 @@ struct MonthlyPlanView: View {
             .sheet(isPresented: $isStartingNextMonth) {
                 StartNextMonthView(plan: plan)
             }
+            .sheet(isPresented: $isShowingUncategorized) {
+                UncategorizedExpensesView(plan: plan)
+            }
             .confirmationDialog(
                 "Close \(plan.displayTitle)?",
                 isPresented: $isConfirmingClose,
@@ -64,7 +68,7 @@ struct MonthlyPlanView: View {
                 Button("Cancel", role: .cancel) {}
                     .accessibilityIdentifier("cancelCloseMonthButton")
             } message: {
-                Text("Closing the month makes it read-only. You can still view all transactions and budgets.")
+                Text(FinanceCopy.closeMonthWarning)
             }
             .sheet(isPresented: $isEditingMoney) {
                 EditMonthlyPlanView(plan: plan)
@@ -99,7 +103,7 @@ struct MonthlyPlanView: View {
     // MARK: - Summary
 
     private var summarySection: some View {
-        Section(plan.displayTitle.uppercased()) {
+        Section("MONTHLY MONEY") {
             money("Starting Money", summary.startingBalance, id: "summaryStartingMoney")
             moneyAddedRow
             money("Total Money", summary.totalMoney, id: "summaryTotalMoney")
@@ -122,7 +126,7 @@ struct MonthlyPlanView: View {
             }
 
             if plan.isClosed {
-                Label("This month is closed. It is read-only.", systemImage: "lock.fill")
+                Label(FinanceCopy.closedMonthNotice, systemImage: "lock.fill")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier("closedMonthNotice")
@@ -201,18 +205,29 @@ struct MonthlyPlanView: View {
 
     /// Expenses whose category was deleted still spend real money, so they are
     /// shown rather than quietly dropped off this screen.
+    /// Only appears when there is something to clean up -- a month with every
+    /// expense categorised should not be nagged about it.
     @ViewBuilder
     private var uncategorizedSection: some View {
-        let uncategorized = FinanceCalculator.uncategorizedSpent(for: plan)
-        if uncategorized > 0 {
+        let orphans = FinanceCalculator.uncategorizedExpenses(for: plan)
+        if !orphans.isEmpty {
             Section("UNCATEGORIZED") {
-                LabeledContent("Spent") {
-                    Text(uncategorized.currencyText).font(.body.monospacedDigit())
+                Button {
+                    isShowingUncategorized = true
+                } label: {
+                    LabeledContent {
+                        Text(FinanceCalculator.uncategorizedSpent(for: plan).currencyText)
+                            .font(.body.monospacedDigit())
+                    } label: {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Uncategorized Spending")
+                            Text("\(orphans.count) \(orphans.count == 1 ? "expense" : "expenses") with no budget")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
                 }
-                .accessibilityIdentifier("uncategorizedSpent")
-                Text("These expenses count toward the month but belong to no budget.")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
+                .accessibilityIdentifier("uncategorizedLink")
             }
         }
     }
@@ -225,17 +240,7 @@ struct MonthlyPlanView: View {
     }
 
     private func deletionMessage(for category: BudgetCategory) -> String {
-        let count = category.expenses.count
-        guard count > 0 else {
-            return "This category has no expenses."
-        }
-        let noun = count == 1 ? "expense is" : "expenses are"
-        return """
-        \(count) \(noun) assigned to this category.
-
-        The \(count == 1 ? "expense" : "expenses") will NOT be deleted. \
-        \(count == 1 ? "It" : "They") will become Uncategorized.
-        """
+        FinanceCopy.categoryDeletionWarning(expenseCount: category.expenses.count)
     }
 
     // MARK: - Month lifecycle
@@ -312,13 +317,6 @@ struct CategoryBudgetRow: View {
     }
 
     private var statusText: String {
-        if isOver {
-            // abs() so the formatter never has to render a stray minus here.
-            return "\(abs(remaining).currencyText) over budget"
-        }
-        if category.monthlyBudget == 0 {
-            return "No budget set"
-        }
-        return "\(remaining.currencyText) remaining"
+        FinanceCopy.budgetStatus(spent: spent, budget: category.monthlyBudget)
     }
 }

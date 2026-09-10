@@ -133,7 +133,7 @@ enum MonthlyReportPDFRenderer {
         layout.space(2)
         layout.text(
             report.isClosed
-                ? "This month is closed."
+                ? FinanceCopy.closedMonthNotice
                 : "Generated while the month was still open.",
             font: .systemFont(ofSize: 10),
             color: .secondaryLabel
@@ -189,12 +189,7 @@ enum MonthlyReportPDFRenderer {
     }
 
     private static func statusText(for category: MonthlyReportSnapshot.CategoryRow) -> String {
-        if category.isOverBudget {
-            // abs() so the minus never lands next to the currency symbol here.
-            return "\(abs(category.remaining).currencyText) over budget"
-        }
-        if category.hasNoBudget { return "No budget set" }
-        return "\(category.remaining.currencyText) remaining"
+        FinanceCopy.budgetStatus(spent: category.spent, budget: category.budget)
     }
 
     private static func drawMoneyAdded(_ report: MonthlyReportSnapshot, in layout: Layout) {
