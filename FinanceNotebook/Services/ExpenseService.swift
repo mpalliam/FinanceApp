@@ -18,6 +18,9 @@ enum ExpenseError: Error, Equatable {
 
     /// The month has been closed and is read-only.
     case planIsClosed(monthTitle: String)
+
+    /// A bulk reassignment was given expenses from more than one month.
+    case mixedPlans
 }
 
 extension ExpenseError: LocalizedError {
@@ -38,6 +41,8 @@ extension ExpenseError: LocalizedError {
             "This expense is not attached to a month."
         case .planIsClosed(let monthTitle):
             "\(monthTitle) is closed. Expenses cannot be changed in a closed month."
+        case .mixedPlans:
+            "Those expenses belong to different months and cannot be changed together."
         }
     }
 }
@@ -108,6 +113,59 @@ enum ExpenseService {
         expense.category = category
 
         try context.save()
+    }
+
+    // MARK: - Bulk reassignment
+
+    /// Moves several expenses into one category at once.
+    ///
+    /// Built for cleaning up after a deleted category, where doing it one
+    /// expense at a time is tedious enough that it does not get done.
+    ///
+    /// Only the category changes. Amount, date, merchant, note, month and -- most
+    /// importantly -- the expense's id are all left alone, so this is a
+    /// reassignment rather than a rewrite. That also means the month's totals
+    /// cannot move: the same money is still spent, just filed differently.
+    ///
+    /// Everything is checked before anything is written, and the whole set is
+    /// committed by a single save, so a rejected reassignment leaves every
+    /// expense exactly as it was rather than changing some of them.
+    ///
+    /// An empty selection is a no-op rather than an error: nothing was asked
+    /// for, so nothing happens and nothing is saved.
+    @discardableResult
+    static func assignCategory(
+        to expenses: [Expense],
+        category: BudgetCategory,
+        context: ModelContext
+    ) throws -> Int {
+
+        guard !expenses.isEmpty else { return 0 }
+
+        // Every expense must belong to one month, and it must be the category's
+        // month. Filing September's spending under an October budget would
+        // quietly corrupt both months' figures.
+        guard let categoryPlan = category.plan else {
+            throw ExpenseError.missingPlan
+        }
+        var plans = Set<UUID>()
+        for expense in expenses {
+            guard let plan = expense.plan else { throw ExpenseError.missingPlan }
+            plans.insert(plan.id)
+        }
+        guard plans.count == 1 else { throw ExpenseError.mixedPlans }
+        guard plans.first == categoryPlan.id else {
+            throw ExpenseError.categoryFromAnotherMonth
+        }
+
+        try requireOpen(categoryPlan)
+
+        // Nothing above wrote anything, so a throw leaves the store untouched.
+        for expense in expenses {
+            expense.category = category
+        }
+        try context.save()
+        return expenses.count
     }
 
     // MARK: - Delete
