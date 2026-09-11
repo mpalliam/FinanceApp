@@ -214,6 +214,15 @@ struct UncategorizedExpensesView: View {
                     .foregroundStyle(.primary)
             }
         }
+        // A Button tints its label with the accent colour, and the explicit
+        // .primary/.secondary above resolve against that tint rather than
+        // overriding it -- so every merchant, date and amount rendered blue,
+        // financial data reading as though it were a link. Retinting to
+        // .primary restores normal label colours and lets .secondary go grey
+        // again; selection stays carried by the accent-coloured checkmark.
+        // (.buttonStyle(.plain) fixes the colour too, but stops the row's tap
+        // from registering inside a List.)
+        .tint(Color.primary)
         .disabled(plan.isClosed)
         .accessibilityIdentifier("uncategorized-\(expense.merchant)")
     }
