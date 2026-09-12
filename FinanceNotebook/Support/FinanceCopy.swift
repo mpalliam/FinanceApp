@@ -61,3 +61,25 @@ enum FinanceCopy {
             """
     }
 }
+
+// MARK: - Release wording
+
+extension FinanceCopy {
+
+    /// Deliberately narrow. It claims local storage and no network, which the
+    /// app does, and stops there: backups are plaintext and the user can send
+    /// them anywhere, so no broader promise would be true.
+    static let privacySummary = """
+        Your financial data is stored locally on this device. Finance Notebook \
+        has no account, does not connect to your bank, and does not send your \
+        financial history anywhere.
+        """
+
+    static let exportBeforeDeleting = """
+        Because your notebook is stored only on this device, export a backup \
+        before deleting Finance Notebook or moving to a new iPhone.
+        """
+
+    static let couldNotCreateBackup = "Couldn't Create Backup"
+    static let couldNotReadBackup = "Couldn't Read Backup"
+}

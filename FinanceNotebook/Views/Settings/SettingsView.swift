@@ -12,6 +12,7 @@ struct SettingsView: View {
     @State private var isImporting = false
     @State private var pendingBackup: BackupValidator.Validated?
     @State private var errorMessage: String?
+    @State private var errorTitle = FinanceCopy.couldNotReadBackup
 
     var body: some View {
         NavigationStack {
@@ -52,6 +53,15 @@ struct SettingsView: View {
                     // Said once, here, rather than as a warning on every export.
                     Text("Backup files contain your financial history. Store them somewhere you trust.")
                 }
+
+                Section {
+                    Text(FinanceCopy.privacySummary)
+                        .accessibilityIdentifier("privacySummary")
+                } header: {
+                    Text("PRIVACY")
+                } footer: {
+                    Text(FinanceCopy.exportBeforeDeleting)
+                }
             }
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.inline)
@@ -74,7 +84,7 @@ struct SettingsView: View {
                     dismiss()
                 }
             }
-            .alert("Couldn't Read Backup",
+            .alert(errorTitle,
                    isPresented: Binding(isPresent: $errorMessage)) {
                 Button("OK") { errorMessage = nil }
             } message: {
@@ -95,6 +105,7 @@ struct SettingsView: View {
         do {
             shareURL = try BackupService.writeBackup(from: context)
         } catch {
+            errorTitle = FinanceCopy.couldNotCreateBackup
             errorMessage = "The backup couldn't be created. Please try again."
         }
     }
@@ -103,6 +114,7 @@ struct SettingsView: View {
     /// restored never reaches a confirmation screen.
     private func handleImport(_ result: Result<Data, Error>) {
         isImporting = false
+        errorTitle = FinanceCopy.couldNotReadBackup
         switch result {
         case .failure:
             errorMessage = BackupError.malformedBackup.localizedDescription

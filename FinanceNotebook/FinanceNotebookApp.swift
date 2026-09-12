@@ -10,7 +10,10 @@ struct FinanceNotebookApp: App {
     /// list, and the container is given a migration plan, so that a future model
     /// change migrates through a declared stage instead of letting SwiftData
     /// infer a mapping and silently discard rows.
-    private static let modelContainer: ModelContainer = {
+    ///
+    /// nil when the store could not be opened. Launching into an explanation
+    /// beats crashing on every launch with nothing the user can act on.
+    private static let modelContainer: ModelContainer? = {
         let schema = Schema(versionedSchema: FinanceNotebookSchemaV2.self)
 
         let configuration = ModelConfiguration(
@@ -38,14 +41,20 @@ struct FinanceNotebookApp: App {
             #endif
             return container
         } catch {
-            fatalError("Could not create the local ModelContainer: \(error)")
+            // Deliberately not logged: the error can carry store paths and
+            // column detail, and this is financial data.
+            return nil
         }
     }()
 
     var body: some Scene {
         WindowGroup {
-            RootView()
+            if let container = Self.modelContainer {
+                RootView()
+                    .modelContainer(container)
+            } else {
+                StoreUnavailableView()
+            }
         }
-        .modelContainer(Self.modelContainer)
     }
 }
