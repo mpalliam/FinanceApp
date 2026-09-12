@@ -360,6 +360,9 @@ final class CategoryAttentionTests: XCTestCase {
 
     private func dec(_ v: String) -> Decimal { Decimal(string: v)! }
 
+    // Callers that only need the category attached to the plan read it back
+    // through `plan`, so discarding the return value is the normal use.
+    @discardableResult
     private func category(_ name: String, budget: String, spent: String)
         throws -> BudgetCategory {
         let category = try BudgetCategoryService.createCategory(
